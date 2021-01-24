@@ -25,6 +25,7 @@ public class UserEntity implements Serializable{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @NotNull
     @Column(name = "uuid")
     @Size(max = 200)
     private String uuid;

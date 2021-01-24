@@ -30,7 +30,8 @@ public class UserService {
         if (password == null) {
             userEntity.setPassword("quora@123");
         }
-        String[] encryptedText = cryptographyProvider.encrypt(userEntity.getPassword());
+
+        String[] encryptedText = cryptographyProvider.encrypt(password);
         userEntity.setSalt(encryptedText[0]);
         userEntity.setPassword(encryptedText[1]);
 

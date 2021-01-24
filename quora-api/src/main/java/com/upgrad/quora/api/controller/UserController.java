@@ -78,5 +78,19 @@ public class UserController {
         return new ResponseEntity<SigninResponse>(authorizedUserResponse, headers, HttpStatus.OK);
     }
 
+    //TODO: Must request access token of the signed in user
+    //TODO: If access_token does not exist, throw SignOutRestrictedException
+    //TODO: If access_token is valid, update logout time in DB and return uuid of the signed out user
+
+    @RequestMapping(method = RequestMethod.POST, path = "/signout", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<SigninResponse> signout(@RequestHeader("access-token") final String accessToken) throws AuthenticationFailedException {
+
+        UserAuthTokenEntity userAuthToken = authenticationService.logout(accessToken);
+        UserEntity user = userAuthToken.getUser();
+
+        SigninResponse authorizedUserResponse = new SigninResponse().id(user.getUuid()).message("Signed out Successfully");
+        return new ResponseEntity<SigninResponse>(authorizedUserResponse, HttpStatus.OK);
+    }
+
 
 }

@@ -22,7 +22,6 @@ public class AuthenticationService {
     //TODO: Authentication is in Basic form followed by base64 encoded values of username:password
     //TODO: If username does not exist throw ATH-001 exception
     //TODO: If password is incorrect throw ATH-002 exception
-    //TODO:
     @Transactional(propagation = Propagation.REQUIRED)
     public UserAuthTokenEntity authenticate(final String username, final String password) throws AuthenticationFailedException {
 
@@ -56,6 +55,22 @@ public class AuthenticationService {
         else {
             throw new AuthenticationFailedException("ATH-002", "Password Failed");
         }
+
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public UserAuthTokenEntity logout(final String accessToken) throws AuthenticationFailedException {
+
+        UserAuthTokenEntity userAuthTokenEntity = userDao.getUserAuthToken(accessToken);
+
+        if (userAuthTokenEntity == null) {
+            throw new AuthenticationFailedException("SGR-001", "User is not Signed in");
+        }
+        final ZonedDateTime now = ZonedDateTime.now();
+        userAuthTokenEntity.setLogoutAt(now);
+        userDao.updateUserAuthToken(userAuthTokenEntity);
+
+        return userAuthTokenEntity;
 
     }
 }

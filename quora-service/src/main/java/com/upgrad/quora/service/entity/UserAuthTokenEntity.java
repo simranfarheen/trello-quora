@@ -28,7 +28,7 @@ public class UserAuthTokenEntity implements Serializable {
     @Size(max = 200)
     private String uuid;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.REMOVE)
     @NotNull
     @JoinColumn(name = "user_id")
     private UserEntity user;

@@ -7,6 +7,8 @@ import com.upgrad.quora.service.entity.QuestionEntity;
 import com.upgrad.quora.service.entity.UserAuthTokenEntity;
 import com.upgrad.quora.service.entity.UserEntity;
 import com.upgrad.quora.service.exception.AuthenticationFailedException;
+import com.upgrad.quora.service.exception.AuthorizationFailedException;
+import com.upgrad.quora.service.exception.InvalidQuestionException;
 import com.upgrad.quora.service.exception.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -57,12 +59,13 @@ public class QuestionController {
         return new ResponseEntity<List<QuestionDetailsResponse>>(questionResponseList, HttpStatus.OK);
     }
 
-    @RequestMapping(method = RequestMethod.PUT, path = "/edit/{questionId}")
-    public ResponseEntity<QuestionEditResponse>  editQuestion(final QuestionEditRequest questionEditRequest, @PathVariable("questionId") final String questionId, @RequestHeader("access-token") final String accessToken) throws AuthenticationFailedException, UserNotFoundException {
+    @RequestMapping(method = RequestMethod.POST, path = "/edit/{questionId}")
+    public ResponseEntity<QuestionEditResponse>  editQuestion(final QuestionEditRequest questionEditRequest, @PathVariable("questionId") final String questionId, @RequestHeader("access-token") final String accessToken) throws AuthenticationFailedException, UserNotFoundException, AuthorizationFailedException, InvalidQuestionException {
         UserEntity userEntity = userService.checkIfUserExists(accessToken);
         UserAuthTokenEntity userAuthTokenEntity = userService.checkIfUserLoggedIn(accessToken);
-
-        return null;
+        QuestionEntity questionEntity = questionService.editQuestion(userEntity, questionId, questionEditRequest.getContent());
+        QuestionEditResponse questionEditResponse = new QuestionEditResponse().id(questionEntity.getUuid()).status("Question Edited");
+        return new ResponseEntity<QuestionEditResponse>(questionEditResponse, HttpStatus.OK);
     }
 
     @RequestMapping(method = RequestMethod.DELETE, path ="/delete/{questionId}")

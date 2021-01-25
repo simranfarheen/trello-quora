@@ -31,6 +31,22 @@ public class QuestionService {
         return questionDao.getAllQuestions();
     }
 
+    public List<QuestionEntity> getQuestionsByUser(String userId){
+        return questionDao.getQuestionByUserId(userId);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public QuestionEntity deleteQuestion(String uuid) throws InvalidQuestionException {
+
+        QuestionEntity questionEntity = questionDao.getQuestionById(uuid);
+        if(questionEntity == null)
+            throw new InvalidQuestionException("QUES-001","Entered question uuid does not exist");
+
+         questionDao.deleteQuestion(questionEntity);
+
+         return questionEntity;
+    }
+
     @Transactional(propagation = Propagation.REQUIRED)
     public QuestionEntity editQuestion(UserEntity userEntity, String uuid, String content) throws AuthorizationFailedException, InvalidQuestionException {
 

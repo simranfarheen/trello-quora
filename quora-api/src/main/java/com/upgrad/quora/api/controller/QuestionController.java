@@ -11,12 +11,11 @@ import com.upgrad.quora.service.exception.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/question")
@@ -44,13 +43,25 @@ public class QuestionController {
         return new ResponseEntity<QuestionResponse>(questionResponse, HttpStatus.CREATED);
     }
 
-    @RequestMapping(method = RequestMethod.GET, path = "/all")
-    public  ResponseEntity<QuestionDetailsResponse> showAllQuestions(){
-        return null;
+    @RequestMapping(method = RequestMethod.POST, path = "/all")
+    public  ResponseEntity<List<QuestionDetailsResponse>> showAllQuestions(@RequestHeader("access-token") final String accessToken) throws UserNotFoundException, AuthenticationFailedException {
+        UserEntity userEntity = userService.checkIfUserExists(accessToken);
+        UserAuthTokenEntity userAuthTokenEntity = userService.checkIfUserLoggedIn(accessToken);
+        List<QuestionEntity> questionEntityList = questionService.getAllQuestions();
+        List<QuestionDetailsResponse> questionResponseList = new ArrayList<>();
+        for (QuestionEntity questionEntity : questionEntityList) {
+            QuestionDetailsResponse questionResponse = new QuestionDetailsResponse().id(questionEntity.getUuid()).content(questionEntity.getContent());
+            questionResponseList.add(questionResponse);
+        }
+
+        return new ResponseEntity<List<QuestionDetailsResponse>>(questionResponseList, HttpStatus.OK);
     }
 
     @RequestMapping(method = RequestMethod.PUT, path = "/edit/{questionId}")
-    public ResponseEntity<QuestionEditResponse>  editQuestion(){
+    public ResponseEntity<QuestionEditResponse>  editQuestion(final QuestionEditRequest questionEditRequest, @PathVariable("questionId") final String questionId, @RequestHeader("access-token") final String accessToken) throws AuthenticationFailedException, UserNotFoundException {
+        UserEntity userEntity = userService.checkIfUserExists(accessToken);
+        UserAuthTokenEntity userAuthTokenEntity = userService.checkIfUserLoggedIn(accessToken);
+
         return null;
     }
 

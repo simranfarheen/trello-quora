@@ -40,11 +40,11 @@ public class UserService {
 
         return userDao.createUser(userEntity);
     }
-
+    /* updated classes*/
+    
     public UserEntity getUser(final String userUUID, final String accessToken) throws AuthenticationFailedException, UserNotFoundException {
 
         UserAuthTokenEntity userAuthTokenEntity = userDao.getUserAuthToken(accessToken);
-
         if (userAuthTokenEntity == null) {
             throw new AuthenticationFailedException("ATHR-001", "User has not signed in");
         }
@@ -55,7 +55,7 @@ public class UserService {
         UserEntity userEntity = userDao.getUser(userUUID);
 
         if(userEntity == null)
-            throw new UserNotFoundException("USR-001", "User with entered uuid does not exist");
+            throw new UserNotFoundException("USR-001", "User with entered uuid does not exist")
 
         return userEntity;
 

@@ -46,7 +46,7 @@ public class AnswerController {
             ErrorResponse errorResponse = new ErrorResponse().code("ATHR-001").message("This username does not exist");
             return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
         }
-
+  
         AnswerEntity answerEntity = new AnswerEntity();
         answerEntity.setUser(userEntity);
         ZonedDateTime now = ZonedDateTime.now();
@@ -87,10 +87,11 @@ public class AnswerController {
             ErrorResponse errorResponse = new ErrorResponse().code("ANS-001").message("Entered answer uuid does not exist");
             return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
+  
         AnswerEditResponse answerEditResponse = new AnswerEditResponse().id(answerEntity.getUuid()).status("Answer Edited");
         return new ResponseEntity<AnswerEditResponse>(answerEditResponse, HttpStatus.OK);
     }
-
+  
     @RequestMapping(method = RequestMethod.DELETE, path ="/answer/delete/{answerId}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public HttpEntity<? extends Object>  deleteQuestion(@PathVariable("answerId") final String answerId, @RequestHeader("authorization") final String accessToken)  {
         UserEntity userEntity;
@@ -115,10 +116,10 @@ public class AnswerController {
             return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
         }
 
-
         AnswerDeleteResponse answerDeleteResponse  = new AnswerDeleteResponse().id(answerEntity.getUuid()).status("Answer Deleted");
         return new ResponseEntity<AnswerDeleteResponse>(answerDeleteResponse, HttpStatus.OK);
     }
+
 
     @RequestMapping(method = RequestMethod.GET, path = "/answer/all/{questionId}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public HttpEntity<? extends Object> showQuestionsByUser(@PathVariable("questionId") final String questionId, @RequestHeader("authorization") final String accessToken) {

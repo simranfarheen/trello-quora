@@ -35,8 +35,12 @@ public class QuestionService {
         return questionDao.getQuestionByUserId(userId);
     }
 
-    public QuestionEntity getQuestionsByUuid(String userId){
-        return questionDao.getQuestionById(userId);
+    public QuestionEntity getQuestionsByUuid(String userId) throws InvalidQuestionException {
+        QuestionEntity question = questionDao.getQuestionById(userId);
+        if(question == null) {
+            throw new InvalidQuestionException("QUES-001", "Entered question uuid does not exist");
+        }
+        return question;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)

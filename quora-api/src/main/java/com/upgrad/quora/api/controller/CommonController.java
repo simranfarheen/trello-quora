@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.upgrad.quora.service.exception.AuthorizationFailedException;
 
 @RestController
 @RequestMapping("/")
@@ -22,25 +23,34 @@ public class CommonController {
     @Autowired
     UserService userService;
 
-    //TODO: request userID and access token of a signed in user
-    //TODO: if access token does not exist throw AuthorizationFailedException exception
-    //TODO: if user has signed out, throw AuthorizationFailedException exception
-    //TODO: if user with uuid does not exist in db throw UserNotFoundException exception
-    //TODO: return details of user from DB
+    /**
+     * Controller Method to view User Profile details based on the User UUID
+     * @param userId : UUID of the user
+     * @param authorization : Acess Token generated during user Login.
+     * @return UserDetailsResponse : Models all the user profile details
+     * @throws AuthenticationFailedException : if AUTh token is invalid or not active
+     * @throws UserNotFoundException : if UUID of the user is invalid
+     * @author Prabhjot
+     */
 
     @RequestMapping(method = RequestMethod.GET, path = "/userprofile/{userId}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<UserDetailsResponse> signout(@RequestHeader("access-token") final String accessToken, @PathVariable("userId") String userId) throws AuthenticationFailedException, UserNotFoundException {
+    public ResponseEntity<UserDetailsResponse> getUserProfileById(@PathVariable("userId") final String userId, @RequestHeader("authorization") final String authorization) throws UserNotFoundException, AuthenticationFailedException {
 
-        final UserEntity userEntity = userService.getUser(userId, accessToken);
-        UserDetailsResponse userDetailsResponse = new UserDetailsResponse().userName(userEntity.getUsername())
-                .firstName(userEntity.getFirstName())
-                .lastName(userEntity.getLastName())
-                .emailAddress(userEntity.getEmail())
-                .contactNumber(userEntity.getContactNumber())
-                .country(userEntity.getCountry())
-                .dob(userEntity.getDob())
-                .aboutMe(userEntity.getAboutMe());
 
-        return new ResponseEntity<UserDetailsResponse>(userDetailsResponse, HttpStatus.OK);
+        UserEntity userById = userService.getUser(userId, authorization);
+
+        UserDetailsResponse userDetailsResponse = new UserDetailsResponse();
+
+        userDetailsResponse.setFirstName(userById.getFirstName());
+        userDetailsResponse.setLastName(userById.getLastName());
+        userDetailsResponse.setUserName(userById.getUsername());
+        userDetailsResponse.setEmailAddress(userById.getEmail());
+        userDetailsResponse.setCountry(userById.getCountry());
+        userDetailsResponse.setAboutMe(userById.getAboutMe());
+        userDetailsResponse.setContactNumber(userById.getContactNumber());
+        userDetailsResponse.setDob(userById.getDob());
+
+        return new ResponseEntity<UserDetailsResponse>(userDetailsResponse, HttpStatus.OK) ;
+
     }
 }

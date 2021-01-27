@@ -35,16 +35,21 @@ public class QuestionService {
         return questionDao.getQuestionByUserId(userId);
     }
 
-    public QuestionEntity getQuestionsByUuid(String userId){
-        return questionDao.getQuestionById(userId);
+    public QuestionEntity getQuestionsByUuid(String userId) throws InvalidQuestionException {
+        QuestionEntity questionEntity = questionDao.getQuestionById(userId);
+        if(questionEntity == null)
+            throw new InvalidQuestionException("QUES-001","Entered question uuid does not exist");
+        return questionEntity;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public QuestionEntity deleteQuestion(String uuid) throws InvalidQuestionException {
+    public QuestionEntity deleteQuestion(String uuid, UserEntity userEntity) throws InvalidQuestionException, AuthorizationFailedException {
 
         QuestionEntity questionEntity = questionDao.getQuestionById(uuid);
         if(questionEntity == null)
             throw new InvalidQuestionException("QUES-001","Entered question uuid does not exist");
+        if(!questionEntity.getUuid().equalsIgnoreCase(userEntity.getUuid()))
+            throw new AuthorizationFailedException("ATHR-003","Only the question owner or admin can delete the question");
 
          questionDao.deleteQuestion(questionEntity);
 

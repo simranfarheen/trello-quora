@@ -40,11 +40,16 @@ public class AnswerController {
             userEntity = userService.checkIfUserExists(accessToken);
             userAuthTokenEntity = userService.checkIfUserLoggedIn(accessToken);
         } catch(AuthenticationFailedException e){
-            ErrorResponse errorResponse= new ErrorResponse().code("ATHR-002").message("Password Failed");
+            ErrorResponse errorResponse;
+            if(e.getCode().equalsIgnoreCase("ATHR-001")) {
+                errorResponse = new ErrorResponse().code("ATHR-001").message("This username does not exist");
+            }else{
+                errorResponse = new ErrorResponse().code("ATHR-002").message("Password Failed");
+            }
             return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
         }catch(UserNotFoundException e){
-            ErrorResponse errorResponse = new ErrorResponse().code("ATHR-001").message("This username does not exist");
-            return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+            ErrorResponse errorResponse = new ErrorResponse().code("USR-001").message("This username does not exist");
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
   
         AnswerEntity answerEntity = new AnswerEntity();
@@ -75,11 +80,16 @@ public class AnswerController {
             answerEntity = answerService.editAnswer(userEntity, answerId, answerEditRequest.getContent());
 
         } catch(AuthenticationFailedException e){
-            ErrorResponse errorResponse = new ErrorResponse().code("ATHR-002").message("Password Failed");
+            ErrorResponse errorResponse;
+            if(e.getCode().equalsIgnoreCase("ATHR-001")) {
+                errorResponse = new ErrorResponse().code("ATHR-001").message("This username does not exist");
+            }else{
+                errorResponse = new ErrorResponse().code("ATHR-002").message("Password Failed");
+            }
             return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
         }catch(UserNotFoundException e){
-            ErrorResponse errorResponse = new ErrorResponse().code("ATHR-001").message("This username does not exist");
-            return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+            ErrorResponse errorResponse = new ErrorResponse().code("USR-001").message("This username does not exist");
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         } catch(AuthorizationFailedException e){
             ErrorResponse errorResponse = new ErrorResponse().code("ATHR-003").message("Only the question owner can edit the question");
             return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
@@ -103,11 +113,16 @@ public class AnswerController {
             answerEntity = answerService.deleteAnswer(answerId, userEntity, userAuthTokenEntity);
 
         } catch(AuthenticationFailedException e){
-            ErrorResponse errorResponse = new ErrorResponse().code("ATHR-002").message("Password Failed");
+            ErrorResponse errorResponse;
+            if(e.getCode().equalsIgnoreCase("ATHR-001")) {
+                errorResponse = new ErrorResponse().code("ATHR-001").message("This username does not exist");
+            }else{
+                errorResponse = new ErrorResponse().code("ATHR-002").message("Password Failed");
+            }
             return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
-        } catch(UserNotFoundException e){
-            ErrorResponse errorResponse = new ErrorResponse().code("ATHR-001").message("This username does not exist");
-            return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+        }catch(UserNotFoundException e){
+            ErrorResponse errorResponse = new ErrorResponse().code("USR-001").message("This username does not exist");
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         } catch(AnswerNotFoundException e){
             ErrorResponse errorResponse = new ErrorResponse().code("ANS-001").message("Entered answer uuid does not exist");
             return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
@@ -129,11 +144,16 @@ public class AnswerController {
             userEntity = userService.checkIfUserExists(accessToken);
             userAuthTokenEntity = userService.checkIfUserLoggedIn(accessToken);
         } catch(AuthenticationFailedException e){
-            ErrorResponse errorResponse = new ErrorResponse().code("ATHR-002").message("Password Failed");
+            ErrorResponse errorResponse;
+            if(e.getCode().equalsIgnoreCase("ATHR-001")) {
+                errorResponse = new ErrorResponse().code("ATHR-001").message("This username does not exist");
+            }else{
+                errorResponse = new ErrorResponse().code("ATHR-002").message("Password Failed");
+            }
             return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
         }catch(UserNotFoundException e){
-            ErrorResponse errorResponse = new ErrorResponse().code("ATHR-001").message("This username does not exist");
-            return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+            ErrorResponse errorResponse = new ErrorResponse().code("USR-001").message("This username does not exist");
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
         List<AnswerEntity> answerEntities;
 

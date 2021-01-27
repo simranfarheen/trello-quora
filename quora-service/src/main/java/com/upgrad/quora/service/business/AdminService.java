@@ -22,6 +22,13 @@ public class AdminService {
         UserEntity userEntityToDelete = userDao.getUser(userId);
 
         UserAuthTokenEntity userAuthTokenEntity = userDao.getUserAuthToken(accessToken);
+
+        if(userAuthTokenEntity==null)
+            throw new AuthorizationFailedException("ATHR-001", "User has not signed in");
+
+        if(userAuthTokenEntity.getLogoutAt()!=null)
+            throw new AuthorizationFailedException("ATHR-002", "User is signed out");
+
         UserEntity currentUserEntity = userAuthTokenEntity.getUser();
 
         if(!currentUserEntity.getRole().equalsIgnoreCase("admin"))
@@ -30,11 +37,6 @@ public class AdminService {
         if(userEntityToDelete == null)
             throw new UserNotFoundException("USR-001", "User with entered uuid to be deleted does not exist");
 
-        if(userAuthTokenEntity==null)
-            throw new AuthorizationFailedException("ATHR-001", "User has not signed in");
-
-        if(userAuthTokenEntity.getLogoutAt()!=null)
-            throw new AuthorizationFailedException("ATHR-002", "User is signed out");
 
         userDao.deleteUser(userEntityToDelete);
 

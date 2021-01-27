@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/answer")
 public class AnswerController {
 
     @Autowired
@@ -32,47 +31,118 @@ public class AnswerController {
     @Autowired
     QuestionService questionService;
 
-    @RequestMapping(method = RequestMethod.POST, path = "/create/question/{questionId}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public HttpEntity<? extends Object> addAnswer(@RequestHeader("authorization") final String accessToken, final AnswerRequest answerRequest, @PathVariable("questionId") String questionId) throws AuthenticationFailedException, UserNotFoundException {
+    @RequestMapping(method = RequestMethod.POST, path = "/question/{questionId}/answer/create", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public HttpEntity<? extends Object> addAnswer(@RequestHeader("authorization") final String accessToken, final AnswerRequest answerRequest, @PathVariable("questionId") String questionId) {
 
-        UserEntity userEntity = userService.checkIfUserExists(accessToken);
-        UserAuthTokenEntity userAuthTokenEntity = userService.checkIfUserLoggedIn(accessToken);
+        UserEntity userEntity;
+        UserAuthTokenEntity userAuthTokenEntity;
+        try {
+            userEntity = userService.checkIfUserExists(accessToken);
+            userAuthTokenEntity = userService.checkIfUserLoggedIn(accessToken);
+        } catch(AuthenticationFailedException e){
+            ErrorResponse errorResponse= new ErrorResponse().code("ATHR-002").message("Password Failed");
+            return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+        }catch(UserNotFoundException e){
+            ErrorResponse errorResponse = new ErrorResponse().code("ATHR-001").message("This username does not exist");
+            return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+        }
+  
         AnswerEntity answerEntity = new AnswerEntity();
         answerEntity.setUser(userEntity);
         ZonedDateTime now = ZonedDateTime.now();
         answerEntity.setDate(now);
         answerEntity.setAnswer(answerRequest.getAnswer());
         answerEntity.setUuid(userEntity.getUuid());
-        answerEntity.setQuestion(questionService.getQuestionsByUuid(questionId));
-        answerService.createAnswer(answerEntity);
+        try {
+            answerEntity.setQuestion(questionService.getQuestionsByUuid(questionId));
+            answerService.createAnswer(answerEntity);
+        }catch (InvalidQuestionException e){
+            ErrorResponse errorResponse = new ErrorResponse().code("QUES-001").message("Entered question uuid does not exist");
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        }
         AnswerResponse answerResponse = new AnswerResponse().id(answerEntity.getUuid()).status("Answer created");
         return new ResponseEntity<AnswerResponse>(answerResponse, HttpStatus.CREATED);
     }
 
-    @RequestMapping(method = RequestMethod.PUT, path = "/edit/{answerId}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public HttpEntity<? extends Object>  editAnswer(final AnswerEditRequest answerEditRequest, @PathVariable("answerId") final String answerId, @RequestHeader("authorization") final String accessToken) throws AuthenticationFailedException, UserNotFoundException, AuthorizationFailedException, InvalidQuestionException, AnswerNotFoundException {
-        UserEntity userEntity = userService.checkIfUserExists(accessToken);
-        UserAuthTokenEntity userAuthTokenEntity = userService.checkIfUserLoggedIn(accessToken);
-        AnswerEntity answerEntity = answerService.editAnswer(userEntity, answerId, answerEditRequest.getContent());
+    @RequestMapping(method = RequestMethod.PUT, path = "/answer/edit/{answerId}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public HttpEntity<? extends Object>  editAnswer(final AnswerEditRequest answerEditRequest, @PathVariable("answerId") final String answerId, @RequestHeader("authorization") final String accessToken)  {
+        UserEntity userEntity;
+        UserAuthTokenEntity userAuthTokenEntity;
+        AnswerEntity answerEntity;
+        try {
+            userEntity = userService.checkIfUserExists(accessToken);
+            userAuthTokenEntity = userService.checkIfUserLoggedIn(accessToken);
+            answerEntity = answerService.editAnswer(userEntity, answerId, answerEditRequest.getContent());
+
+        } catch(AuthenticationFailedException e){
+            ErrorResponse errorResponse = new ErrorResponse().code("ATHR-002").message("Password Failed");
+            return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+        }catch(UserNotFoundException e){
+            ErrorResponse errorResponse = new ErrorResponse().code("ATHR-001").message("This username does not exist");
+            return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+        } catch(AuthorizationFailedException e){
+            ErrorResponse errorResponse = new ErrorResponse().code("ATHR-003").message("Only the question owner can edit the question");
+            return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+        } catch(AnswerNotFoundException e){
+            ErrorResponse errorResponse = new ErrorResponse().code("ANS-001").message("Entered answer uuid does not exist");
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        }
+  
         AnswerEditResponse answerEditResponse = new AnswerEditResponse().id(answerEntity.getUuid()).status("Answer Edited");
         return new ResponseEntity<AnswerEditResponse>(answerEditResponse, HttpStatus.OK);
     }
+  
+    @RequestMapping(method = RequestMethod.DELETE, path ="/answer/delete/{answerId}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public HttpEntity<? extends Object>  deleteQuestion(@PathVariable("answerId") final String answerId, @RequestHeader("authorization") final String accessToken)  {
+        UserEntity userEntity;
+        UserAuthTokenEntity userAuthTokenEntity;
+        AnswerEntity answerEntity;
+        try {
+            userEntity = userService.checkIfUserExists(accessToken);
+            userAuthTokenEntity = userService.checkIfUserLoggedIn(accessToken);
+            answerEntity = answerService.deleteAnswer(answerId, userEntity, userAuthTokenEntity);
 
-    @RequestMapping(method = RequestMethod.DELETE, path ="/delete/{answerId}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public HttpEntity<? extends Object>  deleteQuestion(@PathVariable("answerId") final String answerId, @RequestHeader("authorization") final String accessToken) throws UserNotFoundException, AuthenticationFailedException, InvalidQuestionException, AnswerNotFoundException, AuthorizationFailedException {
-        UserEntity userEntity =userService.checkIfUserExists(accessToken);
-        UserAuthTokenEntity userAuthTokenEntity =userService.checkIfUserLoggedIn(accessToken);
-        AnswerEntity answerEntity = answerService.deleteAnswer(answerId,userEntity,userAuthTokenEntity);
+        } catch(AuthenticationFailedException e){
+            ErrorResponse errorResponse = new ErrorResponse().code("ATHR-002").message("Password Failed");
+            return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+        } catch(UserNotFoundException e){
+            ErrorResponse errorResponse = new ErrorResponse().code("ATHR-001").message("This username does not exist");
+            return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+        } catch(AnswerNotFoundException e){
+            ErrorResponse errorResponse = new ErrorResponse().code("ANS-001").message("Entered answer uuid does not exist");
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        }catch(AuthorizationFailedException e){
+            ErrorResponse errorResponse = new ErrorResponse().code("ATHR-003").message("Only the question owner can edit the question");
+            return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+        }
 
         AnswerDeleteResponse answerDeleteResponse  = new AnswerDeleteResponse().id(answerEntity.getUuid()).status("Answer Deleted");
         return new ResponseEntity<AnswerDeleteResponse>(answerDeleteResponse, HttpStatus.OK);
     }
 
-    @RequestMapping(method = RequestMethod.GET, path = "/all/{questionId}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public HttpEntity<? extends Object> showQuestionsByUser(@PathVariable("questionId") final String questionId, @RequestHeader("authorization") final String accessToken) throws UserNotFoundException, AuthenticationFailedException, InvalidQuestionException {
-        UserEntity userEntity =userService.checkIfUserExists(accessToken);
-        UserAuthTokenEntity userAuthTokenEntity =userService.checkIfUserLoggedIn(accessToken);
-        List<AnswerEntity> answerEntities = answerService.getAllAnswers(questionId);
+
+    @RequestMapping(method = RequestMethod.GET, path = "/answer/all/{questionId}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public HttpEntity<? extends Object> showQuestionsByUser(@PathVariable("questionId") final String questionId, @RequestHeader("authorization") final String accessToken) {
+        UserEntity userEntity;
+        UserAuthTokenEntity userAuthTokenEntity;
+        try {
+            userEntity = userService.checkIfUserExists(accessToken);
+            userAuthTokenEntity = userService.checkIfUserLoggedIn(accessToken);
+        } catch(AuthenticationFailedException e){
+            ErrorResponse errorResponse = new ErrorResponse().code("ATHR-002").message("Password Failed");
+            return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+        }catch(UserNotFoundException e){
+            ErrorResponse errorResponse = new ErrorResponse().code("ATHR-001").message("This username does not exist");
+            return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+        }
+        List<AnswerEntity> answerEntities;
+
+        try {
+            answerEntities = answerService.getAllAnswers(questionId);
+        }catch (InvalidQuestionException e){
+            ErrorResponse errorResponse = new ErrorResponse().code("QUES-001").message("Entered question uuid does not exist");
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        }
 
         List<AnswerDetailsResponse> answerDetailsResponses = new ArrayList<>();
         for (AnswerEntity answerEntity : answerEntities) {

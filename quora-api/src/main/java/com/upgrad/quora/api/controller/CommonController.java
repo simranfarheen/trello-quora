@@ -1,5 +1,6 @@
 package com.upgrad.quora.api.controller;
 
+import com.upgrad.quora.api.model.ErrorResponse;
 import com.upgrad.quora.api.model.UserDetailsResponse;
 import com.upgrad.quora.service.business.AuthenticationService;
 import com.upgrad.quora.service.business.UserService;
@@ -30,9 +31,24 @@ public class CommonController {
     //TODO: return details of user from DB
 
     @RequestMapping(method = RequestMethod.GET, path = "/userprofile/{userId}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public HttpEntity<? extends Object> getUserProfileByUserId(@RequestHeader("authorization") final String accessToken, @PathVariable("userId") String userId) throws AuthenticationFailedException, UserNotFoundException {
+    public HttpEntity<? extends Object> getUserProfileByUserId(@RequestHeader("authorization") final String accessToken, @PathVariable("userId") String userId) {
+        final UserEntity userEntity;
 
-        final UserEntity userEntity = userService.getUser(userId, accessToken);
+        try{
+             userEntity = userService.getUser(userId, accessToken);
+        }catch(AuthenticationFailedException e){
+            if(e.getCode().equalsIgnoreCase("ATHR-002")) {
+                ErrorResponse errorResponse = new ErrorResponse().code("ATHR-002").message("User is signed out.Sign in first to get user details");
+                return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+            }else{
+                ErrorResponse errorResponse = new ErrorResponse().code("ATHR-001").message("User has not signed in");
+                return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+            }
+        }catch(UserNotFoundException e){
+            ErrorResponse errorResponse = new ErrorResponse().code("USR-001").message("User with entered uuid does not exist");
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        }
+
         UserDetailsResponse userDetailsResponse = new UserDetailsResponse().userName(userEntity.getUsername())
                 .firstName(userEntity.getFirstName())
                 .lastName(userEntity.getLastName())
@@ -42,6 +58,6 @@ public class CommonController {
                 .dob(userEntity.getDob())
                 .aboutMe(userEntity.getAboutMe());
 
-        return new ResponseEntity<UserDetailsResponse>(userDetailsResponse, HttpStatus.OK);
+        return new ResponseEntity<>(userDetailsResponse, HttpStatus.OK);
     }
 }

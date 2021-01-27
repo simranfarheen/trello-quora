@@ -57,6 +57,10 @@ public class UserDao {
         entityManager.merge(updateduserAuthTokenEntity);
     }
 
+    public void deleteUser(final UserEntity user) {
+        entityManager.remove(user);
+    }
+
 
     public UserAuthTokenEntity getUserAuthToken(final String accessToken) {
         try {

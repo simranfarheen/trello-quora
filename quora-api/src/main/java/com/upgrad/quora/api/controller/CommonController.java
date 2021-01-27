@@ -7,6 +7,7 @@ import com.upgrad.quora.service.entity.UserEntity;
 import com.upgrad.quora.service.exception.AuthenticationFailedException;
 import com.upgrad.quora.service.exception.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +30,7 @@ public class CommonController {
     //TODO: return details of user from DB
 
     @RequestMapping(method = RequestMethod.GET, path = "/userprofile/{userId}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<UserDetailsResponse> signout(@RequestHeader("access-token") final String accessToken, @PathVariable("userId") String userId) throws AuthenticationFailedException, UserNotFoundException {
+    public HttpEntity<? extends Object> getUserProfileByUserId(@RequestHeader("authorization") final String accessToken, @PathVariable("userId") String userId) throws AuthenticationFailedException, UserNotFoundException {
 
         final UserEntity userEntity = userService.getUser(userId, accessToken);
         UserDetailsResponse userDetailsResponse = new UserDetailsResponse().userName(userEntity.getUsername())

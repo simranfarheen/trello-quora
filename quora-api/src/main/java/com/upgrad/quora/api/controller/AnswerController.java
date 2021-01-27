@@ -9,6 +9,7 @@ import com.upgrad.quora.service.entity.UserAuthTokenEntity;
 import com.upgrad.quora.service.entity.UserEntity;
 import com.upgrad.quora.service.exception.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +33,7 @@ public class AnswerController {
     QuestionService questionService;
 
     @RequestMapping(method = RequestMethod.POST, path = "/create/question/{questionId}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<AnswerResponse> addAnswer(@RequestHeader("access-token") final String accessToken, final AnswerRequest answerRequest, @PathVariable("questionId") String questionId) throws AuthenticationFailedException, UserNotFoundException {
+    public HttpEntity<? extends Object> addAnswer(@RequestHeader("authorization") final String accessToken, final AnswerRequest answerRequest, @PathVariable("questionId") String questionId) throws AuthenticationFailedException, UserNotFoundException {
 
         UserEntity userEntity = userService.checkIfUserExists(accessToken);
         UserAuthTokenEntity userAuthTokenEntity = userService.checkIfUserLoggedIn(accessToken);
@@ -49,7 +50,7 @@ public class AnswerController {
     }
 
     @RequestMapping(method = RequestMethod.PUT, path = "/edit/{answerId}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<AnswerEditResponse>  editAnswer(final AnswerEditRequest answerEditRequest, @PathVariable("answerId") final String answerId, @RequestHeader("access-token") final String accessToken) throws AuthenticationFailedException, UserNotFoundException, AuthorizationFailedException, InvalidQuestionException {
+    public HttpEntity<? extends Object>  editAnswer(final AnswerEditRequest answerEditRequest, @PathVariable("answerId") final String answerId, @RequestHeader("authorization") final String accessToken) throws AuthenticationFailedException, UserNotFoundException, AuthorizationFailedException, InvalidQuestionException, AnswerNotFoundException {
         UserEntity userEntity = userService.checkIfUserExists(accessToken);
         UserAuthTokenEntity userAuthTokenEntity = userService.checkIfUserLoggedIn(accessToken);
         AnswerEntity answerEntity = answerService.editAnswer(userEntity, answerId, answerEditRequest.getContent());
@@ -58,17 +59,17 @@ public class AnswerController {
     }
 
     @RequestMapping(method = RequestMethod.DELETE, path ="/delete/{answerId}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<AnswerDeleteResponse>  deleteQuestion(@PathVariable("answerId") final String answerId, @RequestHeader("access-token") final String accessToken) throws UserNotFoundException, AuthenticationFailedException, InvalidQuestionException, AnswerNotFoundException {
+    public HttpEntity<? extends Object>  deleteQuestion(@PathVariable("answerId") final String answerId, @RequestHeader("authorization") final String accessToken) throws UserNotFoundException, AuthenticationFailedException, InvalidQuestionException, AnswerNotFoundException, AuthorizationFailedException {
         UserEntity userEntity =userService.checkIfUserExists(accessToken);
         UserAuthTokenEntity userAuthTokenEntity =userService.checkIfUserLoggedIn(accessToken);
-        AnswerEntity answerEntity = answerService.deleteAnswer(answerId);
+        AnswerEntity answerEntity = answerService.deleteAnswer(answerId,userEntity,userAuthTokenEntity);
 
         AnswerDeleteResponse answerDeleteResponse  = new AnswerDeleteResponse().id(answerEntity.getUuid()).status("Answer Deleted");
         return new ResponseEntity<AnswerDeleteResponse>(answerDeleteResponse, HttpStatus.OK);
     }
 
     @RequestMapping(method = RequestMethod.GET, path = "/all/{questionId}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<List<AnswerDetailsResponse>> showQuestionsByUser(@PathVariable("questionId") final String questionId, @RequestHeader("access-token") final String accessToken) throws UserNotFoundException, AuthenticationFailedException {
+    public HttpEntity<? extends Object> showQuestionsByUser(@PathVariable("questionId") final String questionId, @RequestHeader("authorization") final String accessToken) throws UserNotFoundException, AuthenticationFailedException, InvalidQuestionException {
         UserEntity userEntity =userService.checkIfUserExists(accessToken);
         UserAuthTokenEntity userAuthTokenEntity =userService.checkIfUserLoggedIn(accessToken);
         List<AnswerEntity> answerEntities = answerService.getAllAnswers(questionId);

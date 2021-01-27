@@ -35,6 +35,10 @@ public class QuestionService {
         return questionDao.getQuestionByUserId(userId);
     }
 
+    public QuestionEntity getQuestionsByUuid(String userId){
+        return questionDao.getQuestionById(userId);
+    }
+
     @Transactional(propagation = Propagation.REQUIRED)
     public QuestionEntity deleteQuestion(String uuid) throws InvalidQuestionException {
 

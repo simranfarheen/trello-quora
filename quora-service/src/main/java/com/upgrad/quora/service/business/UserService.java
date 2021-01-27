@@ -40,7 +40,8 @@ public class UserService {
 
         return userDao.createUser(userEntity);
     }
-
+    /* updated classes*/
+    
     public UserEntity getUser(final String userUUID, final String accessToken) throws AuthenticationFailedException, UserNotFoundException {
 
         UserAuthTokenEntity userAuthTokenEntity = userDao.getUserAuthToken(accessToken);

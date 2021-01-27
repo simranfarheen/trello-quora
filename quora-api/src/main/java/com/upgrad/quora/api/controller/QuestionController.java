@@ -68,12 +68,17 @@ public class QuestionController {
             userEntity = userService.checkIfUserExists(accessToken);
             userAuthTokenEntity = userService.checkIfUserLoggedIn(accessToken);
         } catch(AuthenticationFailedException e){
-            ErrorResponse errorResponse = new ErrorResponse().code("ATHR-002").message("Password Failed");
-            return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
-        }catch(UserNotFoundException e){
-            ErrorResponse errorResponse = new ErrorResponse().code("ATHR-001").message("This username does not exist");
-            return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
-        }
+                ErrorResponse errorResponse;
+                if(e.getCode().equalsIgnoreCase("ATHR-001")) {
+                    errorResponse = new ErrorResponse().code("ATHR-001").message("This username does not exist");
+                }else{
+                    errorResponse = new ErrorResponse().code("ATHR-002").message("Password Failed");
+                }
+                return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+            } catch(UserNotFoundException e){
+                ErrorResponse errorResponse = new ErrorResponse().code("USR-001").message("User with entered uuid does not exist");
+                return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+            }
 
         List<QuestionEntity> questionEntityList = questionService.getAllQuestions();
 
@@ -165,12 +170,12 @@ public class QuestionController {
             userService.getUser(userId, accessToken);
         }catch(AuthenticationFailedException e){
             ErrorResponse errorResponse;
-            if(e.getCode().equalsIgnoreCase("ATH-001")) {
-                errorResponse = new ErrorResponse().code("ATH-001").message("This username does not exist");
+            if(e.getCode().equalsIgnoreCase("ATHR-001")) {
+                errorResponse = new ErrorResponse().code("ATHR-001").message("This username does not exist");
             }else{
-                errorResponse = new ErrorResponse().code("ATH-002").message("Password Failed");
+                errorResponse = new ErrorResponse().code("ATHR-002").message("Password Failed");
             }
-            return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
         } catch(UserNotFoundException e){
             ErrorResponse errorResponse = new ErrorResponse().code("USR-001").message("User with entered uuid does not exist");
             return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);

@@ -51,13 +51,13 @@ public class UserController {
         try {
              createdUserEntity = userService.signup(userEntity);
         } catch(SignUpRestrictedException e){
+            ErrorResponse errorResponse;
             if(e.getCode().equalsIgnoreCase("SGR-001")) {
-                ErrorResponse errorResponse = new ErrorResponse().code("SGR-001").message("Try any other Username, this Username has already been taken");
-                return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+                errorResponse = new ErrorResponse().code("SGR-001").message("Try any other Username, this Username has already been taken");
             }else{
-                ErrorResponse errorResponse = new ErrorResponse().code("SGR-002").message("This user has already been registered, try with any other emailId");
-                return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+                errorResponse = new ErrorResponse().code("SGR-002").message("This user has already been registered, try with any other emailId");
             }
+            return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
         }
 
         SignupUserResponse userResponse = new SignupUserResponse().id(createdUserEntity.getUuid()).status("User Successfully Registered");

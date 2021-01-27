@@ -77,7 +77,7 @@ public class UserService {
     public UserEntity checkIfUserExists(final String accessToken) throws UserNotFoundException, AuthenticationFailedException {
         UserAuthTokenEntity userAuthTokenEntity = userDao.getUserAuthToken(accessToken);
         if(userAuthTokenEntity == null)
-            throw new UserNotFoundException("ATHR-001", "User has not signed in");
+            throw new AuthenticationFailedException("ATHR-001", "User has not signed in");
         UserEntity userEntity = userAuthTokenEntity.getUser();
         if(userEntity == null)
             throw new UserNotFoundException("USR-001", "User with entered uuid whose question details are to be seen does not exist");
